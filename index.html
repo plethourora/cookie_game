@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SweetVerse Cookie Quiz</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+html, body { margin:0; padding:0; height:100%; font-family:'Poppins', sans-serif; background:#ffe0b2; }
+body { display:flex; justify-content:center; align-items:center; overflow:hidden; }
+
+/* SCREEN */
+.screen {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    width:100%;
+    min-height:100vh;
+    padding:20px;
+    position:relative;
+    text-align:center;
+}
+
+/* START SCREEN */
+#startScreen h1 { color:#5d4037; font-weight:700; z-index:2; position:relative; }
+#startScreen h2 { color:#814414; font-weight:500; margin-top:10px; z-index:2; position:relative; }
+#startScreen p { color:#5d4037; font-weight:400; margin-top:5px; z-index:2; position:relative; }
+#startButton {
+    z-index:2;
+    background:#bb6f2d;
+    color:white;
+    border-radius:30px;
+    padding:15px 30px;
+    font-size:1.2rem;
+    font-weight:600;
+    border:none;
+    margin-top:20px;
+}
+#startButton:hover { background:#4d2308; cursor:pointer; transform:scale(1.05); transition:0.2s; }
+
+/* Cookie bg animation */
+.cookie-bg { 
+    position:absolute;
+    top:0; left:0;
+    width:100%; height:100%;
+    pointer-events:none;
+    z-index:1;
+}
+.cookie-bg span {
+    position:absolute;
+    animation: floatUpDown ease-in-out infinite alternate;
+}
+@keyframes floatUpDown { 0% { transform: translateY(0px); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0px); } }
+
+/* QUIZ & RESULT */
+#quizContainer, #result {
+    max-width:600px; width:100%;
+    background:#fff3e0; padding:30px;
+    border-radius:20px; box-shadow:0 4px 15px rgba(0,0,0,0.2);
+    display:none;
+}
+
+.answer-btn {
+    margin:8px 0; width:100%; padding:15px; border:none; border-radius:30px;
+    color:white; font-size:1.1rem; cursor:pointer; background:#814414; font-weight:500;
+    transition: transform 0.2s, background 0.2s;
+}
+.answer-btn:hover { transform: scale(1.05); background:#4d2308; }
+
+#result img { max-width:200px; margin-top:15px; border-radius:15px; }
+#retryButton, #shopButton, .share-btn {
+    border-radius:30px; padding:12px 25px; font-weight:600; font-size:1.1rem; margin-top:15px; border:none;
+    color:white;
+    transition: transform 0.2s, background 0.2s;
+}
+#retryButton { background:#f1b93d; }
+#retryButton:hover { background:#bb6f2d; cursor:pointer; transform:scale(1.05); }
+#shopButton { background:#bb6f2d; margin-left:5px; }
+#shopButton:hover { background:#4d2308; cursor:pointer; transform:scale(1.05); }
+.share-btn { background:#814414; margin-left:5px; }
+.share-btn:hover { background:#4d2308; cursor:pointer; transform:scale(1.05); }
+
+/* RESPONSIVE TWEAK */
+@media (max-height:700px) {
+    .screen { padding:10px; }
+    #quizContainer, #result { padding:20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- COOKIE BG -->
+<div class="cookie-bg" id="cookieBg"></div>
+
+<!-- START SCREEN -->
+<div id="startScreen" class="screen">
+    <h1>Discover Your Sweetverse Cookie! 🍪</h1>
+    <h2>Which cookie fits you best? Let’s see!</h2>
+    <p>Answer a few fun questions and find your perfect cookie!</p>
+    <button id="startButton">Start Quiz</button>
+</div>
+
+<!-- QUIZ CONTAINER -->
+<div id="quizContainer" class="screen">
+    <div id="question" class="h5 mb-4"></div>
+    <div id="answers" class="d-grid gap-2"></div>
+</div>
+
+<!-- RESULT -->
+<div id="result" class="screen">
+    <h2>Cookie You Got:</h2>
+    <div id="cookieName" class="h4 mt-2"></div>
+    <img id="cookieImg" src="" alt="">
+    <p id="cookieDesc" class="mt-3"></p>
+    <div class="d-flex flex-wrap justify-content-center">
+        <button id="retryButton" onclick="restartQuiz()">Try Again</button>
+        <button id="shopButton" onclick="window.open('https://yourwebsite.com','_blank')">Visit Our Website</button>
+        <button class="share-btn" onclick="shareWhatsApp()">Share WhatsApp</button>
+        <button class="share-btn" onclick="shareTwitter()">Share Twitter/X</button>
+        <button class="share-btn" onclick="copyLink()">Copy Link</button>
+    </div>
+</div>
+
+<script>
+// ==== Background Cookies Random ====
+const bg = document.getElementById('cookieBg');
+for(let i=0; i<30; i++){
+    const span = document.createElement('span');
+    span.textContent = '🍪';
+    span.style.left = Math.random()*100 + '%';
+    span.style.top = Math.random()*100 + '%';
+    span.style.fontSize = (20 + Math.random()*40) + 'px';
+    span.style.opacity = 0.15 + Math.random()*0.15;
+    span.style.animationDuration = (3 + Math.random()*5) + 's';
+    span.style.animationDelay = Math.random()*5 + 's';
+    bg.appendChild(span);
+}
+
+// ==== Quiz Data ====
+const quizData = [
+{ question: "Weekend favoritmu biasanya diisi dengan…", answers:[{text:"Bersantai di rumah, menikmati waktu sendiri 🛋️", type:"A"},{text:"Hangout atau quality time bareng teman & keluarga 🥳", type:"B"},{text:"Membaca, menulis, atau melakukan kegiatan reflektif 📖", type:"C"},{text:"Mencoba hal baru atau mengeksplorasi pengalaman unik 🌟", type:"D"}]},
+{ question: "Warna yang paling kamu sukai adalah…", answers:[{text:"Pastel atau lembut 🌸", type:"A"},{text:"Cerah & bold seperti merah atau kuning 🔥", type:"B"},{text:"Netral & kalem seperti krem atau abu-abu 🤎", type:"C"},{text:"Unik & playful seperti hijau mint atau biru laut 💚", type:"D"}]},
+{ question: "Saat merasa stress, biasanya kamu…", answers:[{text:"Menenangkan diri sambil istirahat dan memanjakan diri 😌", type:"A"},{text:"Ngobrol atau seru-seruan dengan teman biar lega 🗣️", type:"B"},{text:"Merenung, menulis, atau melakukan refleksi diri ✍️", type:"C"},{text:"Mencari tantangan baru untuk mengalihkan pikiran 🏃‍♂️", type:"D"}]},
+{ question: "Jika bisa memilih hobi baru, kamu akan memilih…", answers:[{text:"Hobi yang menenangkan, seperti meditasi atau yoga 🧘", type:"A"},{text:"Hobi sosial, seperti bergabung komunitas atau klub 🥳", type:"B"},{text:"Hobi kreatif & personal, seperti menulis atau melukis 🎨", type:"C"},{text:"Hobi unik & penuh petualangan, seperti hiking ekstrem atau eksperimen ilmiah 🔬", type:"D"}]},
+{ question: "Saat punya waktu luang, kamu lebih suka…", answers:[{text:"Bersantai di rumah dan menikmati waktu sendiri 🛋️", type:"A"},{text:"Menghabiskan waktu bersama teman-teman atau keluarga 🥳", type:"B"},{text:"Membaca, menulis, atau melakukan kegiatan reflektif 📖", type:"C"},{text:"Mencoba hal baru atau mengeksplorasi pengalaman unik 🌟", type:"D"}]},
+{ question: "Bagaimana teman-teman biasanya menggambarkanmu?", answers:[{text:"Tenang & manis 😇", type:"A"},{text:"Ceria & energik 😎", type:"B"},{text:"Bijaksana & pengertian 🧠", type:"C"},{text:"Kreatif & unik 🎨", type:"D"}]},
+{ question: "Saat menghadiri acara atau pesta, kamu biasanya…", answers:[{text:"Duduk santai, menikmati suasana, ngobrol sedikit 🫖", type:"A"},{text:"Jadi pusat perhatian, ikut semua kegiatan & games 🎉", type:"B"},{text:"Berinteraksi dengan beberapa teman dekat saja 🤝", type:"C"},{text:"Mencoba hal baru atau hal yang nggak biasa 🎭", type:"D"}]},
+{ question: "Liburan impianmu adalah…", answers:[{text:"Staycation tenang di tempat cozy 🛏️", type:"A"},{text:"Road trip atau adventure bareng teman 🚗", type:"B"},{text:"Retreat atau camping untuk refleksi diri ⛺", type:"C"},{text:"Festival unik, workshop kreatif, atau pengalaman baru 🌟", type:"D"}]},
+{ question: "Kamu tipe teman yang…", answers:[{text:"Selalu peduli & mendukung 💕", type:"A"},{text:"Selalu ngajak seru-seruan 😆", type:"B"},{text:"Memberi saran bijak & menenangkan 🧘‍♂️", type:"C"},{text:"Punya ide kreatif & out-of-the-box 💡", type:"D"}]},
+{ question: "Aktivitas favoritmu di hari biasa…", answers:[{text:"Bersantai dan menikmati waktu sendiri 🛋️", type:"A"},{text:"Bertemu teman & bersosialisasi 🥳", type:"B"},{text:"Membaca, menulis, atau aktivitas reflektif 📖", type:"C"},{text:"Bereksperimen dengan hal baru atau belajar sesuatu yang unik 🌟", type:"D"}]},
+{ question: "Cara terbaikmu menghadapi masalah…", answers:[{text:"Tetap tenang & menenangkan diri 😌", type:"A"},{text:"Diskusi dengan teman untuk mendapatkan saran 🗣️", type:"B"},{text:"Refleksi & analisis sendiri 🧠", type:"C"},{text:"Cari solusi kreatif atau cara baru untuk menghadapinya 💡", type:"D"}]},
+{ question: "Sifat yang paling menggambarkanmu…", answers:[{text:"Tenang & penyayang 😇", type:"A"},{text:"Enerjik & berani 😎", type:"B"},{text:"Bijaksana & reflektif 🧘", type:"C"},{text:"Kreatif & unik 🎨", type:"D"}]},
+];
+
+const cookieInfo = {
+    "A": {name:"Original 🍪", img:"original.png", desc:"Tenang, hangat, dan selalu nyaman. Kamu tipe orang yang menyenangkan, easy-going, dan bikin semua orang merasa nyaman di sekitarmu."},
+    "B": {name:"Double Choco 🍫", img:"doublechoco.png", desc:"Enerjik, ceria, dan penuh semangat. Kamu selalu jadi pusat perhatian dan nggak takut mengekspresikan diri."},
+    "C": {name:"Matcha 🍵", img:"matcha.png", desc:"Bijaksana, reflektif, dan tenang. Kamu suka momen tenang, introspektif, dan selalu memikirkan hal-hal dengan matang."},
+    "D": {name:"Red Velvet ❤️", img:"redvelvet.png", desc:"Kreatif, unik, dan penuh gaya. Kamu punya selera yang berbeda, suka hal-hal unik, dan selalu ingin mencoba pengalaman baru."}
+};
+
+let score = { "A":0, "B":0, "C":0, "D":0 };
+let currentQuestion = 0;
+
+const startButton = document.getElementById("startButton");
+startButton.addEventListener("click", ()=>{
+    document.getElementById("startScreen").style.display="none";
+    document.getElementById("quizContainer").style.display="flex";
+    showQuestion();
+});
+
+function showQuestion(){
+    if(currentQuestion >= quizData.length){
+        showResult();
+        return;
+    }
+    const q = quizData[currentQuestion];
+    document.getElementById("question").textContent = q.question;
+    const answersDiv = document.getElementById("answers");
+    answersDiv.innerHTML = "";
+    q.answers.forEach(a=>{
+        const btn = document.createElement("button");
+        btn.className = "answer-btn";
+        btn.textContent = a.text;
+        btn.onclick = ()=>{
+            score[a.type]++;
+            currentQuestion++;
+            showQuestion();
+        };
+        answersDiv.appendChild(btn);
+    });
+}
+
+function showResult(){
+    const maxScore = Math.max(...Object.values(score));
+    const topType = Object.keys(score).filter(k=>score[k]===maxScore)[0];
+    const topCookie = cookieInfo[topType];
+    document.getElementById("quizContainer").style.display="none";
+    document.getElementById("result").style.display="flex";
+    document.getElementById("cookieName").textContent = topCookie.name;
+    document.getElementById("cookieImg").src = topCookie.img;
+    document.getElementById("cookieDesc").textContent = topCookie.desc;
+}
+
+function restartQuiz(){
+    score = { "A":0, "B":0, "C":0, "D":0 };
+    currentQuestion = 0;
+    document.getElementById("result").style.display="none";
+    document.getElementById("quizContainer").style.display="flex";
+    showQuestion();
+}
+
+// ==== SHARE ====
+function shareWhatsApp(){
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent("Aku baru aja ikutan quiz Sweetverse Cookie, dan hasilku: " + document.getElementById("cookieName").textContent);
+    window.open(`https://wa.me/?text=${text}%20${url}`, '_blank');
+}
+function shareTwitter(){
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent("Aku baru aja ikutan quiz Sweetverse Cookie, dan hasilku: " + document.getElementById("cookieName").textContent);
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+}
+function copyLink(){
+    navigator.clipboard.writeText(window.location.href);
+    alert("Link quiz berhasil disalin!");
+}
+</script>
+</body>
+</html>
